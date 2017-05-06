@@ -37,6 +37,7 @@ import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.rest.RestChannel;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.SearchHits;
 import org.jboss.netty.channel.Channel;
 
@@ -183,6 +184,7 @@ public class XlsContent extends DataContent {
                         + (currentCount + size));
 
                 for (final SearchHit hit : hits) {
+                    final Map<String,SearchHitField> fieldsMap = hit.getFields();
                     final Map<String, Object> sourceMap = hit.sourceAsMap();
                     final Map<String, Object> dataMap = new HashMap<String, Object>();
                     MapUtils.convertToFlatMap("", sourceMap, dataMap);
@@ -192,6 +194,15 @@ public class XlsContent extends DataContent {
                             headerSet.add(key);
                         }
                     }
+                    if(!fieldsMap.isEmpty()) {
+                        for (final String key : fieldsMap.keySet()) {
+                            if (modifiableFieldSet && !headerSet.contains(key)) {
+                                headerSet.add(key);
+                            }
+                        }
+                    }
+
+
                     if (appnedHeader) {
                         final Row headerRow = sheet.createRow(currentCount);
                         int count = 0;
@@ -210,7 +221,12 @@ public class XlsContent extends DataContent {
 
                     int count = 0;
                     for (final String name : headerSet) {
-                        final Object value = dataMap.get(name);
+                        Object value = dataMap.get(name);
+
+                        if(value  == null && fieldsMap.containsKey(name)){
+                            value = fieldsMap.get(name);
+                        }
+
                         final Cell cell = row.createCell(count);
                         if (value != null
                                 && value.toString().trim().length() > 0) {
