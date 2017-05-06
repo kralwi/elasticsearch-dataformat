@@ -7,11 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -224,7 +220,10 @@ public class XlsContent extends DataContent {
                         Object value = dataMap.get(name);
 
                         if(value  == null && fieldsMap.containsKey(name)){
-                            value = fieldsMap.get(name);
+                            List<Object> values = fieldsMap.get(name).getValues();
+                            if(!values.isEmpty()){
+                                value = values.get(0);
+                            }
                         }
 
                         final Cell cell = row.createCell(count);
